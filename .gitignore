@@ -1,0 +1,15 @@
+# Object files
+*.o
+*.a
+
+# Build artifacts
+*.elf
+*.map
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
