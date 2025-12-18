@@ -1,6 +1,6 @@
 # A ZERO Player v1.20
 
-Video player for SF2000 and GB300 handheld consoles.
+World's first video player for SF2000 and GB300 handheld consoles.
 
 ## Features
 
@@ -141,4 +141,5 @@ Based on libretro API. TJpgDec by ChaN (http://elm-chan.org/).
 ## Author
 
 Grzegorz Korycki
+
 
