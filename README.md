@@ -58,8 +58,8 @@ World's first video player for SF2000 and GB300 handheld consoles.
 4. Put your source videos in input.
 5. Run "convert_custom.bat" and select your settings. Recommended: Xvid + MP3 audio.
 6. When it finishes copy the videos from output_avi_xvid to your memory card - either:
-   a) copy to /VIDEOS/ if you want to load them manually from the interface or
-   b) copy them to /ROMS/a0_player/ and run make-romlist.bat from the main directory of the card, if you want them visible in ROMS on the console.
+- copy to /VIDEOS/ if you want to load them manually from the interface or
+- copy them to /ROMS/a0_player/ and run make-romlist.bat from the main directory of the card, if you want them visible in ROMS on the console.
 
 ### Recommended Settings
 
@@ -151,6 +151,7 @@ Based on libretro API. TJpgDec by ChaN (http://elm-chan.org/).
 ## Author
 
 Grzegorz Korycki
+
 
 
 
