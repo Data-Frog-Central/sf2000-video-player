@@ -11,7 +11,7 @@
  */
 
 /* ========== VERSION - CHANGE HERE ========== */
-#define PLAYER_VERSION "1.21"
+#define PLAYER_VERSION "1.22"
 /* ============================================ */
 
 #include "libretro.h"
@@ -425,7 +425,7 @@ static const char *menu_labels[MENU_ITEMS] = {
 /* File browser */
 #define FB_MAX_FILES 64
 #define FB_MAX_PATH 256
-#define FB_MAX_NAME 64
+#define FB_MAX_NAME 128
 #define FB_VISIBLE_ITEMS 15
 #define FB_START_PATH "/mnt/sda1/VIDEOS"
 #define SETTINGS_FILE "/mnt/sda1/VIDEOS/a0player.cfg"
@@ -439,6 +439,13 @@ static int fb_file_count = 0;
 static int fb_selection = 0;
 static int fb_scroll = 0;
 static int no_file_loaded = 0;  /* 1 if started without file */
+
+/* Filename scroll for long names */
+static int fb_name_scroll = 0;       /* current scroll offset */
+static int fb_name_scroll_timer = 0; /* timer for scroll speed */
+static int fb_last_selection = -1;   /* to reset scroll on selection change */
+#define FB_NAME_VISIBLE_CHARS 40     /* max visible chars in filename */
+#define FB_NAME_SCROLL_DELAY 8       /* frames between scroll steps */
 static char loaded_file_path[FB_MAX_PATH] = "";
 
 /* Visual feedback icons */
@@ -1098,11 +1105,13 @@ static void polish_to_latin(const char *src, char *dst, int max_len) {
             }
             i += 2;
         } else if (c >= 0x80) {
-            /* Other multi-byte UTF-8 - skip */
-            if ((c & 0xE0) == 0xC0) i += 2;
-            else if ((c & 0xF0) == 0xE0) i += 3;
-            else if ((c & 0xF8) == 0xF0) i += 4;
-            else i++;
+            /* Other multi-byte UTF-8 - skip safely (check for null in sequence) */
+            int skip = 1;
+            if ((c & 0xE0) == 0xC0) skip = 2;
+            else if ((c & 0xF0) == 0xE0) skip = 3;
+            else if ((c & 0xF8) == 0xF0) skip = 4;
+            /* Don't skip past null terminator */
+            for (int k = 0; k < skip && src[i]; k++) i++;
             dst[j++] = '?';
         } else {
             dst[j++] = src[i++];
@@ -1250,6 +1259,13 @@ static void draw_file_browser(void) {
     int list_y = fb_y + 34;
     int item_height = 10;
 
+    /* Reset scroll when selection changes */
+    if (fb_selection != fb_last_selection) {
+        fb_name_scroll = 0;
+        fb_name_scroll_timer = 0;
+        fb_last_selection = fb_selection;
+    }
+
     for (int i = 0; i < FB_VISIBLE_ITEMS && (fb_scroll + i) < fb_file_count; i++) {
         int idx = fb_scroll + i;
         int y = list_y + i * item_height;
@@ -1261,16 +1277,43 @@ static void draw_file_browser(void) {
 
         /* Icon and filename (convert Polish chars for display) */
         pixel_t col = fb_is_dir[idx] ? col_dir : col_file;
-        char display_name[45];
-        char display_latin[45];
+        char full_name[FB_MAX_NAME + 3];  /* +3 for brackets */
+        char display_name[FB_NAME_VISIBLE_CHARS + 1];
+        char display_latin[FB_NAME_VISIBLE_CHARS + 1];
 
         if (fb_is_dir[idx]) {
-            snprintf(display_name, 44, "[%s]", fb_files[idx]);
+            snprintf(full_name, sizeof(full_name), "[%s]", fb_files[idx]);
         } else {
-            strncpy(display_name, fb_files[idx], 44);
-            display_name[44] = '\0';
+            strncpy(full_name, fb_files[idx], FB_MAX_NAME);
+            full_name[FB_MAX_NAME - 1] = '\0';
         }
-        polish_to_latin(display_name, display_latin, 45);
+
+        int name_len = strlen(full_name);
+
+        /* For selected item, apply scrolling if name is too long */
+        if (idx == fb_selection && name_len > FB_NAME_VISIBLE_CHARS) {
+            int max_scroll = name_len - FB_NAME_VISIBLE_CHARS;
+
+            /* Scroll timer */
+            fb_name_scroll_timer++;
+            if (fb_name_scroll_timer >= FB_NAME_SCROLL_DELAY) {
+                fb_name_scroll_timer = 0;
+                fb_name_scroll++;
+                if (fb_name_scroll > max_scroll + 10) {  /* pause at end then reset */
+                    fb_name_scroll = 0;
+                }
+            }
+
+            int scroll_pos = (fb_name_scroll > max_scroll) ? max_scroll : fb_name_scroll;
+            strncpy(display_name, full_name + scroll_pos, FB_NAME_VISIBLE_CHARS);
+            display_name[FB_NAME_VISIBLE_CHARS] = '\0';
+        } else {
+            /* Non-selected or short name - just truncate */
+            strncpy(display_name, full_name, FB_NAME_VISIBLE_CHARS);
+            display_name[FB_NAME_VISIBLE_CHARS] = '\0';
+        }
+
+        polish_to_latin(display_name, display_latin, FB_NAME_VISIBLE_CHARS + 1);
         draw_str(fb_x + 8, y, display_latin, col);
     }
 

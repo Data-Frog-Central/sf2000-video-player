@@ -41,7 +41,8 @@ ifeq ($(platform), sf2000)
 
    # Defines for SF2000
    CFLAGS += -DSF2000
-   # libmad: FPM_DEFAULT is hardcoded in froggyMP3's fixed.h
+   # libmad: use default fixed-point (pure C, no asm - MIPS asm has issues with this compiler)
+   CFLAGS += -DFPM_DEFAULT
 
    STATIC_LINKING = 1
 

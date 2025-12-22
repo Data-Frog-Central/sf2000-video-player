@@ -1,4 +1,4 @@
-# A ZERO Player v1.20
+# A ZERO Player v1.22
 
 World's first video player for SF2000 and GB300 handheld consoles.
 
@@ -98,6 +98,14 @@ make platform=sf2000
 Then link with sf2000_multicore to create `core_87000000`.
 
 ## Changelog
+
+### v1.22
+- Long filename support (up to 128 characters)
+- Filename scrolling for selected item in file browser
+- Fixed UTF-8 emoji handling in filenames
+
+### v1.21
+- Fixed audio sample rate detection when loading from menu
 
 ### v1.20
 - Xvid (MPEG-4 ASP) video codec support
