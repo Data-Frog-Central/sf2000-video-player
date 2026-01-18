@@ -24,7 +24,7 @@ LIBM        := -lm
 # =============================================================
 ifeq ($(platform), sf2000)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
-   MIPS := /tmp/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
+   MIPS := /opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
    CC = $(MIPS)gcc
    CXX = $(MIPS)g++
    AR = $(MIPS)ar
